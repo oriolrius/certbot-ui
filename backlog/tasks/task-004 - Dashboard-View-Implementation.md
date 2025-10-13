@@ -19,11 +19,11 @@ Create the main dashboard view showing certificate overview, status, and key met
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Dashboard layout created with responsive grid
-- [ ] #2 Certificate count and status widgets implemented
-- [ ] #3 Expiration warnings and alerts displayed
-- [ ] #4 Quick action buttons for common operations
-- [ ] #5 Recent activity log component created
+- [x] #1 Dashboard layout created with responsive grid
+- [x] #2 Certificate count and status widgets implemented
+- [x] #3 Expiration warnings and alerts displayed
+- [x] #4 Quick action buttons for common operations
+- [x] #5 Recent activity log component created
 <!-- AC:END -->
 
 ## Implementation Plan
