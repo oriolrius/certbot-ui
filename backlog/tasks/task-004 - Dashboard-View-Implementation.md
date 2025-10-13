@@ -1,9 +1,11 @@
 ---
 id: task-004
 title: Dashboard View Implementation
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2025-10-13 07:15'
+updated_date: '2025-10-13 07:23'
 labels: []
 dependencies: []
 priority: medium
