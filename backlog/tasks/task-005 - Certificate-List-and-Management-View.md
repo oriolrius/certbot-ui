@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2025-10-13 07:15'
-updated_date: '2025-10-13 07:24'
+updated_date: '2025-10-13 07:25'
 labels: []
 dependencies: []
 priority: medium
@@ -19,11 +19,11 @@ Build a comprehensive view to list all certificates with filtering, sorting, and
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Certificate list table/grid component created
-- [ ] #2 Filtering by status, domain, expiration date implemented
-- [ ] #3 Sorting functionality working
-- [ ] #4 Certificate detail modal/page showing full information
-- [ ] #5 Actions menu for each certificate (renew, revoke, delete)
+- [x] #1 Certificate list table/grid component created
+- [x] #2 Filtering by status, domain, expiration date implemented
+- [x] #3 Sorting functionality working
+- [x] #4 Certificate detail modal/page showing full information
+- [x] #5 Actions menu for each certificate (renew, revoke, delete)
 <!-- AC:END -->
 
 ## Implementation Plan
