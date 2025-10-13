@@ -1,9 +1,11 @@
 ---
 id: task-002
 title: Backend API Server Setup
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2025-10-13 07:15'
+updated_date: '2025-10-13 07:18'
 labels: []
 dependencies: []
 priority: high
