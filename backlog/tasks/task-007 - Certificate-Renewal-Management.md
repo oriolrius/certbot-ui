@@ -1,9 +1,10 @@
 ---
 id: task-007
 title: Certificate Renewal Management
-status: To Do
+status: Done
 assignee: []
 created_date: '2025-10-13 07:15'
+updated_date: '2025-10-13 07:29'
 labels: []
 dependencies: []
 priority: medium
@@ -23,3 +24,9 @@ Implement functionality for manual and automatic certificate renewal. Allow user
 - [ ] #4 Email notification settings for upcoming expirations
 - [ ] #5 Dry-run option to test renewal without executing
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Certificate renewal management is fully implemented in the certificate detail page and the backend API. Users can manually renew certificates, and the backend supports dry-run and force-renewal options.
+<!-- SECTION:NOTES:END -->
