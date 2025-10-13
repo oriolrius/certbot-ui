@@ -1,9 +1,11 @@
 ---
 id: task-006
 title: New Certificate Wizard
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2025-10-13 07:15'
+updated_date: '2025-10-13 07:25'
 labels: []
 dependencies: []
 priority: high
@@ -25,3 +27,16 @@ Create a step-by-step wizard for obtaining new SSL/TLS certificates. Should guid
 - [ ] #6 Progress indicator showing certificate acquisition status
 - [ ] #7 Success/error handling with clear messages
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Create multi-step wizard component
+2. Domain input step with validation
+3. Plugin selection step
+4. Configuration options step
+5. Review and confirm step
+6. Progress indicator for certificate acquisition
+7. Error handling with clear messages
+8. Write tests
+<!-- SECTION:PLAN:END -->
