@@ -1,7 +1,7 @@
 ---
 id: task-005
 title: Certificate List and Management View
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2025-10-13 07:15'
@@ -36,3 +36,20 @@ Build a comprehensive view to list all certificates with filtering, sorting, and
 5. Add action menu for each certificate
 6. Write component tests
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Created comprehensive certificate management views:
+
+- Certificate list page with grid layout
+- Search functionality across names and domains
+- Filtering by status (all, valid, expiring soon, expired)
+- Sorting by name or expiry date
+- Certificate detail page with full information
+- Actions menu with renew and delete operations
+- Delete confirmation dialog
+- Action prompts for expired/expiring certificates
+- Responsive design for mobile and desktop
+- Proper loading and empty states
+<!-- SECTION:NOTES:END -->
