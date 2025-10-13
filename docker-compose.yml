@@ -1,0 +1,62 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: certbot-ui-backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      # Mount Let's Encrypt directories (read-write for certbot operations)
+      - /etc/letsencrypt:/etc/letsencrypt
+      - /var/lib/letsencrypt:/var/lib/letsencrypt
+      - /var/log/letsencrypt:/var/log/letsencrypt
+      # Application logs
+      - ./backend/logs:/app/logs
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - JWT_SECRET=${JWT_SECRET:-change-this-to-a-secure-random-string}
+      - JWT_EXPIRES_IN=24h
+      - ALLOWED_ORIGINS=http://localhost,http://localhost:3000,http://localhost:9000
+      - CERTBOT_PATH=/usr/bin/certbot
+      - CERTBOT_CONFIG_DIR=/etc/letsencrypt
+      - CERTBOT_WORK_DIR=/var/lib/letsencrypt
+      - CERTBOT_LOGS_DIR=/var/log/letsencrypt
+      - RATE_LIMIT_WINDOW_MS=900000
+      - RATE_LIMIT_MAX_REQUESTS=100
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - certbot-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: certbot-ui-frontend
+    restart: unless-stopped
+    ports:
+      - "9000:80"
+    depends_on:
+      - backend
+    environment:
+      - VITE_API_URL=/api
+      - VITE_WS_URL=ws://localhost:5000/ws
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - certbot-network
+
+networks:
+  certbot-network:
+    driver: bridge
