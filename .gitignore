@@ -1,6 +1,5 @@
 # Dependencies
 node_modules/
-package-lock.json
 
 # Build outputs
 dist/
@@ -43,3 +42,6 @@ certbot-data/
 tmp/
 temp/
 *.tmp
+
+# Cloudflared tunnel credentials (keep config.yml but not credentials)
+.cloudflared/*.json
