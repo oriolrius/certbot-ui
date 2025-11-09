@@ -15,16 +15,11 @@ FROM base AS dependencies
 
 # Copy package files from monorepo root
 COPY package.json package-lock.json ./
-COPY backend/package*.json ./backend/
-COPY frontend/package*.json ./frontend/
+COPY backend/package.json ./backend/
+COPY frontend/package.json ./frontend/
 
-# Install production dependencies for backend
-WORKDIR /app/backend
-RUN npm ci --omit=dev
-
-# Install production dependencies for frontend
-WORKDIR /app/frontend
-RUN npm ci --omit=dev
+# Install production dependencies using npm workspaces from root
+RUN npm ci --omit=dev --workspaces
 
 ################################################################################
 # Build Backend
@@ -33,18 +28,17 @@ FROM base AS build-backend
 
 # Copy package files
 COPY package.json package-lock.json ./
-COPY backend/package*.json ./backend/
+COPY backend/package.json ./backend/
 
 # Install all dependencies (including dev dependencies for build)
-WORKDIR /app/backend
-RUN npm ci
+RUN npm ci --workspace=backend
 
 # Copy backend source files
-COPY backend/src ./src
-COPY backend/tsconfig.json ./
+COPY backend/src ./backend/src
+COPY backend/tsconfig.json ./backend/
 
 # Build backend TypeScript
-RUN npm run build
+RUN npm run build --workspace=backend
 
 ################################################################################
 # Build Frontend
@@ -56,26 +50,27 @@ ARG VITE_API_URL=/api
 
 # Copy package files
 COPY package.json package-lock.json ./
-COPY frontend/package*.json ./frontend/
+COPY frontend/package.json ./frontend/
 
 # Install all dependencies (including dev dependencies for build)
-WORKDIR /app/frontend
-RUN npm ci
+RUN npm ci --workspace=frontend
 
 # Copy frontend source files
-COPY frontend/src ./src
-COPY frontend/public ./public
-COPY frontend/index.html ./
-COPY frontend/vite.config.ts ./
-COPY frontend/tsconfig.json ./
-COPY frontend/tsconfig.node.json ./
-COPY frontend/.env.development ./.env
+COPY frontend/src ./frontend/src
+COPY frontend/index.html ./frontend/
+COPY frontend/vite.config.ts ./frontend/
+COPY frontend/tsconfig.json ./frontend/
+COPY frontend/tsconfig.node.json ./frontend/
+COPY frontend/tailwind.config.js ./frontend/
+COPY frontend/postcss.config.js ./frontend/
+COPY frontend/.eslintrc.cjs ./frontend/
+COPY frontend/.env.development ./frontend/.env
 
 # Set environment variable for Vite build
 ENV VITE_API_URL=${VITE_API_URL}
 
 # Build frontend
-RUN npm run build
+RUN npm run build --workspace=frontend
 
 ################################################################################
 # Production Backend Stage
@@ -115,12 +110,13 @@ RUN addgroup -g 1001 -S nodejs && \
 # Set working directory
 WORKDIR /app
 
-# Copy production dependencies
-COPY --from=dependencies --chown=nodejs:nodejs /app/backend/node_modules ./node_modules
-COPY --from=dependencies --chown=nodejs:nodejs /app/backend/package.json ./
+# Copy production dependencies (workspaces install to root node_modules)
+COPY --from=dependencies --chown=nodejs:nodejs /app/node_modules ./node_modules
+COPY --from=dependencies --chown=nodejs:nodejs /app/package.json ./package.json
+COPY --from=dependencies --chown=nodejs:nodejs /app/backend/package.json ./backend/package.json
 
 # Copy built backend
-COPY --from=build-backend --chown=nodejs:nodejs /app/backend/dist ./dist
+COPY --from=build-backend --chown=nodejs:nodejs /app/backend/dist ./backend/dist
 
 # Create logs directory
 RUN mkdir -p logs && chown -R nodejs:nodejs logs
@@ -148,7 +144,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 ENTRYPOINT ["dumb-init", "--", "/usr/local/bin/docker-entrypoint.sh"]
 
 # Start the application
-CMD ["node", "dist/index.js"]
+CMD ["node", "backend/dist/index.js"]
 
 ################################################################################
 # Production Frontend Stage
