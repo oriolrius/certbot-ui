@@ -64,9 +64,9 @@ COPY frontend/tsconfig.node.json ./frontend/
 COPY frontend/tailwind.config.js ./frontend/
 COPY frontend/postcss.config.js ./frontend/
 COPY frontend/.eslintrc.cjs ./frontend/
-COPY frontend/.env.development ./frontend/.env
 
 # Set environment variable for Vite build
+# Vite will use this during build process - no .env file needed
 ENV VITE_API_URL=${VITE_API_URL}
 
 # Build frontend
