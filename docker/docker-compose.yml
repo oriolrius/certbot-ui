@@ -1,0 +1,94 @@
+services:
+  # Backend API Server
+  backend:
+    image: ghcr.io/oriolrius/certbot-ui/backend:${IMAGE_TAG:-latest}
+    container_name: certbot-ui-backend
+    restart: unless-stopped
+    networks:
+      - certbot-ui-network
+    environment:
+      # Server configuration
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=${PORT:-5000}
+      - HOST=0.0.0.0
+
+      # JWT Configuration
+      - JWT_SECRET=${JWT_SECRET:-change-this-to-a-secure-random-string}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-24h}
+
+      # CORS Configuration
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:8080}
+
+      # Certbot Configuration
+      - CERTBOT_PATH=${CERTBOT_PATH:-/usr/bin/certbot}
+      - CERTBOT_CONFIG_DIR=${CERTBOT_CONFIG_DIR:-/etc/letsencrypt}
+      - CERTBOT_WORK_DIR=${CERTBOT_WORK_DIR:-/var/lib/letsencrypt}
+      - CERTBOT_LOGS_DIR=${CERTBOT_LOGS_DIR:-/var/log/letsencrypt}
+
+      # Rate Limiting
+      - RATE_LIMIT_WINDOW_MS=${RATE_LIMIT_WINDOW_MS:-900000}
+      - RATE_LIMIT_MAX_REQUESTS=${RATE_LIMIT_MAX_REQUESTS:-100}
+    ports:
+      - "${BACKEND_EXTERNAL_PORT:-5000}:5000"
+    volumes:
+      # Mount Let's Encrypt directories (read-write for certbot operations)
+      - ${LETSENCRYPT_CONFIG_DIR:-/etc/letsencrypt}:/etc/letsencrypt
+      - ${LETSENCRYPT_WORK_DIR:-/var/lib/letsencrypt}:/var/lib/letsencrypt
+      - ${LETSENCRYPT_LOGS_DIR:-/var/log/letsencrypt}:/var/log/letsencrypt
+      # Application logs
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    security_opt:
+      - no-new-privileges:true
+
+  # Frontend UI
+  frontend:
+    image: ghcr.io/oriolrius/certbot-ui/frontend:${IMAGE_TAG:-latest}
+    container_name: certbot-ui-frontend
+    restart: unless-stopped
+    networks:
+      - certbot-ui-network
+    ports:
+      - "${FRONTEND_EXTERNAL_PORT:-8080}:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx:uid=1001,gid=1001
+      - /var/run:uid=1001,gid=1001
+      - /var/log/nginx:uid=1001,gid=1001
+
+  # Optional: Cloudflare Tunnel
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: certbot-ui-cloudflared
+    restart: unless-stopped
+    command: tunnel --config /etc/cloudflared/config.yml run
+    volumes:
+      - ${CLOUDFLARED_CONFIG_DIR:-./.cloudflared}:/etc/cloudflared:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - certbot-ui-network
+    profiles:
+      - cloudflare
+
+networks:
+  certbot-ui-network:
+    name: certbot-ui-network
+    driver: bridge

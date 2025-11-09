@@ -1,0 +1,14 @@
+tunnel: af985016-7b6e-4ac0-97f2-d2e39d365b99
+credentials-file: /etc/cloudflared/af985016-7b6e-4ac0-97f2-d2e39d365b99.json
+
+ingress:
+  # Frontend - Certbot UI
+  - hostname: certbot.i40sys.com
+    service: http://frontend:80
+
+  # Backend API - Certbot API
+  - hostname: certbot-api.i40sys.com
+    service: http://backend:5000
+
+  # Catch-all rule (required)
+  - service: http_status:404

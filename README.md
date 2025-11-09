@@ -28,13 +28,40 @@ A modern, secure web interface for managing Certbot SSL/TLS certificates.
 
 ## Quick Start
 
-### Prerequisites
+### 🐳 Production Deployment (Docker - Recommended)
+
+The easiest way to deploy Certbot UI is using Docker:
+
+```bash
+# Navigate to docker directory
+cd docker
+
+# Copy and configure environment
+cp .env.example .env
+nano .env  # Edit JWT_SECRET and other settings
+
+# Start with pre-built images from GitHub Container Registry
+docker-compose up -d
+
+# Or build locally
+docker-compose -f docker-compose.local.yml up -d
+```
+
+Access at:
+- Frontend: http://localhost:8080
+- Backend API: http://localhost:5000
+
+For detailed deployment instructions, see [Docker Documentation](docker/README.md).
+
+### 💻 Development Setup
+
+#### Prerequisites
 
 - Node.js >= 18
 - npm >= 9
 - Certbot installed on the system
 
-### Development
+#### Running Locally
 
 ```bash
 # Install dependencies
@@ -117,10 +144,37 @@ Copy `.env.example` to `.env` in the backend directory and configure:
 - Use rate limiting and input validation
 - Review the security documentation before deployment
 
+## Documentation
+
+Comprehensive documentation is available in the `docs/` directory:
+
+- **[Installation Guide](docs/INSTALLATION.md)** - Detailed installation and setup instructions
+- **[Quick Start Guide](docs/QUICKSTART.md)** - Get up and running quickly
+- **[Usage Guide](docs/USAGE.md)** - How to use the application
+- **[Cloudflare Tunnel Setup](docs/cloudflare-tunnel-setup.md)** - Expose services securely to the internet
+- **[Contributing Guide](docs/CONTRIBUTING.md)** - How to contribute to the project
+
+## Docker Deployment
+
+The application can be deployed using Docker Compose with Cloudflare Tunnels for secure internet access:
+
+```bash
+# Start all services (backend, frontend, and tunnel)
+docker compose up -d
+
+# View logs
+docker compose logs -f
+
+# Stop services
+docker compose down
+```
+
+See the [Cloudflare Tunnel Setup Guide](docs/cloudflare-tunnel-setup.md) for details on exposing your services to the internet.
+
 ## License
 
 MIT
 
 ## Contributing
 
-Contributions are welcome! Please read the contributing guide first.
+Contributions are welcome! Please read the [Contributing Guide](docs/CONTRIBUTING.md) first.
