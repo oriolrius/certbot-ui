@@ -7,9 +7,13 @@ WORKDIR /app
 # openjdk11 includes keytool which is needed for JKS format support
 RUN apk add --no-cache python3 py3-pip python3-dev gcc musl-dev libffi-dev openssl-dev cargo openssl openjdk11 openjdk11-jre-headless
 
-# Install the latest version of Certbot using pip
+# Install the latest version of Certbot and DNS plugins using pip
 # Using --break-system-packages is safe in a container environment
-RUN pip3 install --no-cache-dir --break-system-packages --upgrade certbot
+RUN pip3 install --no-cache-dir --break-system-packages --upgrade \
+    certbot \
+    certbot-dns-cloudflare \
+    certbot-dns-route53 \
+    certbot-dns-google
 
 # Copy package files
 COPY package*.json ./

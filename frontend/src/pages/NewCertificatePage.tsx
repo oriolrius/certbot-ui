@@ -55,13 +55,39 @@ export default function NewCertificatePage() {
   }
 
   const handleSubmit = async () => {
+    // Parse DNS credentials based on provider
+    let parsedCredentials: Record<string, string> | undefined = undefined
+    if (plugin === 'dns' && dnsProvider !== 'manual' && dnsCredentials.trim()) {
+      // For Cloudflare, assume the input is an API token unless it looks like JSON
+      if (dnsProvider === 'cloudflare') {
+        try {
+          // Try parsing as JSON first (for advanced users)
+          parsedCredentials = JSON.parse(dnsCredentials)
+        } catch {
+          // If not JSON, treat as API token
+          parsedCredentials = { api_token: dnsCredentials.trim() }
+        }
+      } else if (dnsProvider === 'route53') {
+        // For Route53, expect JSON with AWS credentials
+        try {
+          parsedCredentials = JSON.parse(dnsCredentials)
+        } catch {
+          alert('Route53 credentials must be in JSON format: {"aws_access_key_id": "...", "aws_secret_access_key": "..."}')
+          return
+        }
+      } else if (dnsProvider === 'google') {
+        // For Google Cloud DNS, expect JSON service account
+        parsedCredentials = { service_account_json: dnsCredentials.trim() }
+      }
+    }
+
     const request: CertificateRequest = {
       domains: domains.filter((d) => d.trim()),
       email,
       plugin,
       webroot_path: plugin === 'webroot' ? webrootPath : undefined,
       dns_provider: plugin === 'dns' ? dnsProvider : undefined,
-      dns_credentials: plugin === 'dns' && dnsProvider !== 'manual' ? dnsCredentials : undefined,
+      dns_credentials: parsedCredentials,
       agree_tos: agreeTos,
       staging,
     }
@@ -197,11 +223,22 @@ export default function NewCertificatePage() {
                       <textarea
                         value={dnsCredentials}
                         onChange={(e) => setDnsCredentials(e.target.value)}
-                        placeholder={`Enter ${dnsProvider} API credentials (e.g., API token, access key)`}
+                        placeholder={
+                          dnsProvider === 'cloudflare'
+                            ? 'Enter your Cloudflare API token'
+                            : dnsProvider === 'route53'
+                            ? '{"aws_access_key_id": "...", "aws_secret_access_key": "..."}'
+                            : dnsProvider === 'google'
+                            ? 'Paste your Google Cloud service account JSON'
+                            : 'Enter API credentials'
+                        }
                         className="w-full px-3 py-2 rounded-md border border-input bg-background mt-2 min-h-[80px]"
                       />
                       <p className="text-xs text-muted-foreground mt-1">
-                        Credentials will be securely stored and used for automatic DNS record management
+                        {dnsProvider === 'cloudflare' && 'Just paste your API token - no JSON formatting needed'}
+                        {dnsProvider === 'route53' && 'Provide AWS credentials in JSON format'}
+                        {dnsProvider === 'google' && 'Paste the entire service account JSON file content'}
+                        {dnsProvider === 'digitalocean' && 'Enter your DigitalOcean API token'}
                       </p>
                     </div>
                   )}

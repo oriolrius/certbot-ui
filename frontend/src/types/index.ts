@@ -13,7 +13,7 @@ export interface CertificateRequest {
   plugin: 'standalone' | 'webroot' | 'nginx' | 'apache' | 'dns'
   webroot_path?: string
   dns_provider?: 'manual' | 'cloudflare' | 'route53' | 'digitalocean' | 'google'
-  dns_credentials?: string
+  dns_credentials?: Record<string, string>
   agree_tos: boolean
   staging?: boolean
 }

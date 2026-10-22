@@ -42,7 +42,7 @@ export const schemas = {
       plugin: z.enum(['standalone', 'webroot', 'nginx', 'apache', 'dns']),
       webroot_path: z.string().optional(),
       dns_provider: z.enum(['manual', 'cloudflare', 'route53', 'digitalocean', 'google']).optional(),
-      dns_credentials: z.string().optional(),
+      dns_credentials: z.record(z.string()).optional(),
       agree_tos: z.boolean(),
       staging: z.boolean().optional(),
     }),

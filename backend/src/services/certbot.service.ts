@@ -96,6 +96,78 @@ rm -f ${challengeFile}
     return hookPath;
   }
 
+  private async createDnsCredentialsFile(
+    provider: string,
+    credentials: Record<string, string>
+  ): Promise<string> {
+    const credentialsDir = path.join('/tmp', 'certbot-credentials');
+    await fs.mkdir(credentialsDir, { recursive: true, mode: 0o700 });
+
+    const credentialsPath = path.join(
+      credentialsDir,
+      `${provider}-credentials.ini`
+    );
+
+    let credentialsContent = '';
+
+    switch (provider) {
+      case 'cloudflare':
+        // Cloudflare supports either API token (recommended) or Global API Key + email
+        if (credentials.api_token) {
+          credentialsContent = `# Cloudflare API token
+dns_cloudflare_api_token = ${credentials.api_token}
+`;
+        } else if (credentials.email && credentials.api_key) {
+          credentialsContent = `# Cloudflare API credentials
+dns_cloudflare_email = ${credentials.email}
+dns_cloudflare_api_key = ${credentials.api_key}
+`;
+        } else {
+          throw new AppError(
+            'Cloudflare credentials require either api_token or (email + api_key)',
+            400
+          );
+        }
+        break;
+
+      case 'route53':
+        // AWS Route53 uses AWS credentials
+        if (credentials.aws_access_key_id && credentials.aws_secret_access_key) {
+          credentialsContent = `# AWS Route53 credentials
+[default]
+aws_access_key_id = ${credentials.aws_access_key_id}
+aws_secret_access_key = ${credentials.aws_secret_access_key}
+`;
+        } else {
+          throw new AppError(
+            'Route53 credentials require aws_access_key_id and aws_secret_access_key',
+            400
+          );
+        }
+        break;
+
+      case 'google':
+        // Google Cloud DNS uses a service account JSON file
+        if (credentials.service_account_json) {
+          credentialsContent = credentials.service_account_json;
+        } else {
+          throw new AppError(
+            'Google DNS credentials require service_account_json',
+            400
+          );
+        }
+        break;
+
+      default:
+        throw new AppError(`Unsupported DNS provider: ${provider}`, 400);
+    }
+
+    await fs.writeFile(credentialsPath, credentialsContent, { mode: 0o600 });
+    logger.info(`Created credentials file for ${provider} at ${credentialsPath}`);
+
+    return credentialsPath;
+  }
+
   private async executeCertbot(args: string[]): Promise<CertbotResult> {
     try {
       // Sanitize all arguments
@@ -254,15 +326,14 @@ rm -f ${challengeFile}
           if (dnsPlugin) {
             args.push(`--${dnsPlugin}`);
 
-            // For automatic DNS providers, credentials would typically be stored in a config file
-            // This is a simplified implementation - in production, you'd want to:
-            // 1. Store credentials securely (encrypted)
-            // 2. Write them to a temporary credentials file
-            // 3. Pass the credentials file path to certbot
+            // Create credentials file if credentials are provided
             if (request.dns_credentials) {
-              logger.info(`Using ${request.dns_provider} DNS provider with provided credentials`);
-              // Note: Actual credential handling would require provider-specific config files
-              // This is placeholder for the implementation
+              const credentialsPath = await this.createDnsCredentialsFile(
+                request.dns_provider!,
+                request.dns_credentials
+              );
+              args.push(`--${dnsPlugin}-credentials`, credentialsPath);
+              logger.info(`Using ${request.dns_provider} DNS provider with credentials file: ${credentialsPath}`);
             }
           }
         }
@@ -486,8 +557,14 @@ rm -f ${challengeFile}
           if (dnsPlugin) {
             args.push(`--${dnsPlugin}`);
 
+            // Create credentials file if credentials are provided
             if (request.dns_credentials) {
-              logger.info(`Using ${request.dns_provider} DNS provider with provided credentials`);
+              const credentialsPath = await this.createDnsCredentialsFile(
+                request.dns_provider!,
+                request.dns_credentials
+              );
+              args.push(`--${dnsPlugin}-credentials`, credentialsPath);
+              logger.info(`Using ${request.dns_provider} DNS provider with credentials file: ${credentialsPath}`);
             }
           }
         }
