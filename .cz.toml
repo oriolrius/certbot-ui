@@ -1,0 +1,14 @@
+[tool.commitizen]
+name = "cz_conventional_commits"
+version_provider = "npm"
+tag_format = "v$version"
+annotated_tag = true
+update_changelog_on_bump = true
+changelog_file = "CHANGELOG.md"
+major_version_zero = false
+version_files = [
+    "VERSION",
+    "backend/package.json:\"version\"",
+    "frontend/package.json:\"version\"",
+    "backend/src/index.ts:version: '",
+]

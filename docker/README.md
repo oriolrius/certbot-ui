@@ -111,7 +111,7 @@ Pre-built images are available on GitHub Container Registry:
 - `ghcr.io/oriolrius/certbot-ui/backend:latest`
 - `ghcr.io/oriolrius/certbot-ui/frontend:latest`
 
-Tagged versions are also available (e.g., `v1.0.0`).
+Tagged versions are also available (e.g., `1.0.0`, `1.0`, `1`).
 
 ## 🔍 Health Checks
 

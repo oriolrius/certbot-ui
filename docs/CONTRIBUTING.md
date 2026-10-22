@@ -157,6 +157,23 @@ Fixes #123
 - `fix(auth): resolve token expiration issue`
 - `docs(readme): update installation steps`
 
+## Releasing
+
+Versions are managed with [commitizen](https://commitizen-tools.github.io/commitizen/)
+(configuration in `.cz.toml`). The bump level is derived from the Conventional
+Commits since the last tag (`fix` → patch, `feat` → minor, `BREAKING CHANGE` → major).
+
+```bash
+uvx --from commitizen cz bump --dry-run   # preview version and changelog
+uvx --from commitizen cz bump             # update VERSION, package.json files, CHANGELOG.md; create annotated tag
+npm install --package-lock-only           # sync workspace versions in package-lock.json
+git push --follow-tags
+```
+
+Pushing the `v<version>` tag runs `release.yml`, which publishes a GitHub release
+with the notes from `cz changelog <version> --dry-run`, and `docker-build.yml`,
+which publishes the Docker images to GHCR.
+
 ## Security
 
 ### Reporting Security Issues

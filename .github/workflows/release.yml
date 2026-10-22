@@ -1,116 +1,62 @@
 name: Release
 
+# Versioning is managed with commitizen: run `cz bump` locally (it updates
+# VERSION, the package.json files and CHANGELOG.md, then creates an annotated
+# v<version> tag) and push with `git push --follow-tags`. Pushing the tag
+# publishes the GitHub release; docker-build.yml publishes the images.
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version bump type'
-        required: true
-        default: 'patch'
-        type: choice
-        options:
-          - patch
-          - minor
-          - major
+  push:
+    tags:
+      - 'v*.*.*'
 
 jobs:
   release:
-    name: 🚀 Create Release
+    name: Create GitHub release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
-      - name: 📥 Checkout code
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      - name: 🟢 Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
 
-      - name: 📦 Install dependencies
-        run: npm install
-
-      - name: 🔍 Run linting
-        run: npm run lint
-
-      - name: 🏗️ Build project
-        run: npm run build
-
-      - name: 🏷️ Configure git
+      - name: Check tag matches VERSION
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: 📈 Bump version
-        id: version
-        run: |
-          # Get current version
-          CURRENT_VERSION=$(node -p "require('./package.json').version")
-          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-
-          # Bump version
-          npm version ${{ github.event.inputs.version }} --no-git-tag-version
-
-          # Get new version
-          NEW_VERSION=$(node -p "require('./package.json').version")
-          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          echo "tag_name=v$NEW_VERSION" >> $GITHUB_OUTPUT
-
-      - name: 📝 Generate changelog
-        id: changelog
-        run: |
-          echo "## 🚀 What's Changed in v${{ steps.version.outputs.new_version }}" > RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
-
-          # Get commits since last tag
-          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          if [ -n "$LAST_TAG" ]; then
-            echo "### 📋 Commits since $LAST_TAG:" >> RELEASE_NOTES.md
-            git log --pretty=format:"- %s (%h)" $LAST_TAG..HEAD >> RELEASE_NOTES.md
-          else
-            echo "### 📋 All commits:" >> RELEASE_NOTES.md
-            git log --pretty=format:"- %s (%h)" >> RELEASE_NOTES.md
+          VERSION="${GITHUB_REF_NAME#v}"
+          if [ "$VERSION" != "$(cat VERSION)" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match VERSION file ($(cat VERSION))"
+            exit 1
           fi
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
-          echo "" >> RELEASE_NOTES.md
-          echo "### 📦 Installation" >> RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
-          echo '```bash' >> RELEASE_NOTES.md
-          echo "# Pull the Docker images" >> RELEASE_NOTES.md
-          echo "docker pull ghcr.io/oriolrius/certbot-ui/backend:v${{ steps.version.outputs.new_version }}" >> RELEASE_NOTES.md
-          echo "docker pull ghcr.io/oriolrius/certbot-ui/frontend:v${{ steps.version.outputs.new_version }}" >> RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
-          echo "# Or use docker-compose" >> RELEASE_NOTES.md
-          echo "cd docker" >> RELEASE_NOTES.md
-          echo "IMAGE_TAG=v${{ steps.version.outputs.new_version }} docker-compose up -d" >> RELEASE_NOTES.md
-          echo '```' >> RELEASE_NOTES.md
-
-      - name: 💾 Commit version bump
+      - name: Generate release notes
         run: |
-          git add package.json
-          git commit -m "🔖 Release v${{ steps.version.outputs.new_version }}"
-          git tag ${{ steps.version.outputs.tag_name }}
+          uvx --from commitizen cz changelog "$VERSION" --dry-run > RELEASE_NOTES.md
+          cat >> RELEASE_NOTES.md <<NOTES
 
-      - name: 🚀 Push changes
-        run: |
-          git push origin main
-          git push origin ${{ steps.version.outputs.tag_name }}
+          ### Docker images
 
-      - name: 📦 Create GitHub Release
-        uses: actions/create-release@v1
+          \`\`\`bash
+          docker pull ghcr.io/${{ github.repository }}/backend:${VERSION}
+          docker pull ghcr.io/${{ github.repository }}/frontend:${VERSION}
+
+          # Or with docker compose
+          cd docker
+          IMAGE_TAG=${VERSION} docker compose up -d
+          \`\`\`
+          NOTES
+          cat RELEASE_NOTES.md
+
+      - name: Create GitHub release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.version.outputs.tag_name }}
-          release_name: 'Release ${{ steps.version.outputs.tag_name }}'
-          body_path: RELEASE_NOTES.md
-          draft: false
-          prerelease: false
-
-      - name: 🎉 Success notification
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "✅ Successfully created release ${{ steps.version.outputs.tag_name }}"
-          echo "🔗 The CI/CD pipeline will now build and publish Docker images automatically"
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --notes-file RELEASE_NOTES.md \
+            --verify-tag
