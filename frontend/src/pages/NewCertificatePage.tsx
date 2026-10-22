@@ -79,6 +79,8 @@ export default function NewCertificatePage() {
       } else if (dnsProvider === 'google') {
         // For Google Cloud DNS, expect JSON service account
         parsedCredentials = { service_account_json: dnsCredentials.trim() }
+      } else if (dnsProvider === 'digitalocean') {
+        parsedCredentials = { api_token: dnsCredentials.trim() }
       }
     }
 

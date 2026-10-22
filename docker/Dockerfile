@@ -100,6 +100,7 @@ RUN apk add --no-cache \
 RUN pip3 install --no-cache-dir --break-system-packages --upgrade \
     certbot \
     certbot-dns-cloudflare \
+    certbot-dns-digitalocean \
     certbot-dns-route53 \
     certbot-dns-google
 

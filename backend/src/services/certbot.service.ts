@@ -1,6 +1,7 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import fs from 'fs/promises';
+import fsSync from 'fs';
 import path from 'path';
 import config from '../config';
 import logger from '../utils/logger';
@@ -96,76 +97,116 @@ rm -f ${challengeFile}
     return hookPath;
   }
 
-  private async createDnsCredentialsFile(
+  // DNS provider credentials are kept under the Let's Encrypt config dir (a
+  // persistent volume): certbot records their path in the renewal config and
+  // needs them again on every `certbot renew`.
+  private get dnsCredentialsDir(): string {
+    return path.join(config.certbot.configDir, 'certbot-ui', 'dns-credentials');
+  }
+
+  // Route53 has no credentials flag: the plugin uses the AWS SDK credential
+  // chain, so a single shared AWS credentials file is exported to every
+  // certbot run (including renewals) through AWS_SHARED_CREDENTIALS_FILE.
+  private get route53CredentialsPath(): string {
+    return path.join(this.dnsCredentialsDir, 'route53-aws-credentials');
+  }
+
+  private async writeSecretFile(filePath: string, content: string): Promise<void> {
+    await fs.mkdir(path.dirname(filePath), { recursive: true, mode: 0o700 });
+    await fs.writeFile(filePath, content, { mode: 0o600 });
+    await fs.chmod(filePath, 0o600);
+  }
+
+  private requireCredentials(
     provider: string,
-    credentials: Record<string, string>
-  ): Promise<string> {
-    const credentialsDir = path.join('/tmp', 'certbot-credentials');
-    await fs.mkdir(credentialsDir, { recursive: true, mode: 0o700 });
+    credentials: Record<string, string>,
+    keys: string[]
+  ): void {
+    const missing = keys.filter((key) => !credentials[key]);
+    if (missing.length > 0) {
+      throw new AppError(
+        `${provider} credentials require ${missing.join(', ')}`,
+        400,
+        'INVALID_DNS_CREDENTIALS'
+      );
+    }
+  }
 
-    const credentialsPath = path.join(
-      credentialsDir,
-      `${provider}-credentials.ini`
-    );
+  private credentialsFileFor(request: CertificateRequest, provider: string): string {
+    const name = request.domains[0].replace(/^\*\./, 'wildcard.').replace(/[^a-zA-Z0-9.-]/g, '_');
+    return path.join(this.dnsCredentialsDir, `${name}-${provider}.ini`);
+  }
 
-    let credentialsContent = '';
+  /**
+   * Adds the certbot DNS plugin arguments for an automatic DNS provider and
+   * writes the provider credentials (mode 0600) where the plugin expects them.
+   */
+  private async addDnsPluginArgs(args: string[], request: CertificateRequest): Promise<void> {
+    const provider = request.dns_provider;
+    const credentials = request.dns_credentials;
 
     switch (provider) {
-      case 'cloudflare':
-        // Cloudflare supports either API token (recommended) or Global API Key + email
+      case 'cloudflare': {
+        args.push('--dns-cloudflare');
+        if (!credentials) return;
+        // Cloudflare supports either an API token (recommended) or Global API Key + email
+        let content: string;
         if (credentials.api_token) {
-          credentialsContent = `# Cloudflare API token
-dns_cloudflare_api_token = ${credentials.api_token}
-`;
-        } else if (credentials.email && credentials.api_key) {
-          credentialsContent = `# Cloudflare API credentials
-dns_cloudflare_email = ${credentials.email}
-dns_cloudflare_api_key = ${credentials.api_key}
-`;
+          content = `dns_cloudflare_api_token = ${credentials.api_token}\n`;
         } else {
-          throw new AppError(
-            'Cloudflare credentials require either api_token or (email + api_key)',
-            400
-          );
+          this.requireCredentials('Cloudflare', credentials, ['email', 'api_key']);
+          content = `dns_cloudflare_email = ${credentials.email}\ndns_cloudflare_api_key = ${credentials.api_key}\n`;
         }
+        const file = this.credentialsFileFor(request, provider);
+        await this.writeSecretFile(file, content);
+        args.push('--dns-cloudflare-credentials', file);
         break;
+      }
 
-      case 'route53':
-        // AWS Route53 uses AWS credentials
-        if (credentials.aws_access_key_id && credentials.aws_secret_access_key) {
-          credentialsContent = `# AWS Route53 credentials
-[default]
-aws_access_key_id = ${credentials.aws_access_key_id}
-aws_secret_access_key = ${credentials.aws_secret_access_key}
-`;
-        } else {
-          throw new AppError(
-            'Route53 credentials require aws_access_key_id and aws_secret_access_key',
-            400
-          );
-        }
+      case 'digitalocean': {
+        args.push('--dns-digitalocean');
+        if (!credentials) return;
+        this.requireCredentials('DigitalOcean', credentials, ['api_token']);
+        const file = this.credentialsFileFor(request, provider);
+        await this.writeSecretFile(file, `dns_digitalocean_token = ${credentials.api_token}\n`);
+        args.push('--dns-digitalocean-credentials', file);
         break;
+      }
 
-      case 'google':
-        // Google Cloud DNS uses a service account JSON file
-        if (credentials.service_account_json) {
-          credentialsContent = credentials.service_account_json;
-        } else {
-          throw new AppError(
-            'Google DNS credentials require service_account_json',
-            400
-          );
-        }
+      case 'google': {
+        args.push('--dns-google');
+        if (!credentials) return;
+        this.requireCredentials('Google Cloud DNS', credentials, ['service_account_json']);
+        const file = this.credentialsFileFor(request, provider).replace(/\.ini$/, '.json');
+        await this.writeSecretFile(file, credentials.service_account_json);
+        args.push('--dns-google-credentials', file);
         break;
+      }
+
+      case 'route53': {
+        args.push('--dns-route53');
+        if (!credentials) return;
+        this.requireCredentials('Route53', credentials, ['aws_access_key_id', 'aws_secret_access_key']);
+        await this.writeSecretFile(
+          this.route53CredentialsPath,
+          `[default]\naws_access_key_id = ${credentials.aws_access_key_id}\naws_secret_access_key = ${credentials.aws_secret_access_key}\n`
+        );
+        break;
+      }
 
       default:
-        throw new AppError(`Unsupported DNS provider: ${provider}`, 400);
+        throw new AppError(`Unsupported DNS provider: ${provider}`, 400, 'INVALID_DNS_PROVIDER');
     }
 
-    await fs.writeFile(credentialsPath, credentialsContent, { mode: 0o600 });
-    logger.info(`Created credentials file for ${provider} at ${credentialsPath}`);
+    logger.info(`Using ${provider} DNS plugin${credentials ? ' with stored credentials' : ''}`);
+  }
 
-    return credentialsPath;
+  private certbotEnv(): NodeJS.ProcessEnv {
+    const env = { ...process.env };
+    if (fsSync.existsSync(this.route53CredentialsPath)) {
+      env.AWS_SHARED_CREDENTIALS_FILE = this.route53CredentialsPath;
+    }
+    return env;
   }
 
   private async executeCertbot(args: string[]): Promise<CertbotResult> {
@@ -179,6 +220,7 @@ aws_secret_access_key = ${credentials.aws_secret_access_key}
       logger.info(`Executing certbot command: ${command}`);
 
       const { stdout, stderr } = await execAsync(command, {
+        env: this.certbotEnv(),
         timeout: 300000, // 5 minutes timeout
         maxBuffer: 10 * 1024 * 1024, // 10MB buffer
       });
@@ -314,28 +356,7 @@ aws_secret_access_key = ${credentials.aws_secret_access_key}
         } else {
           // Non-interactive for automatic DNS providers
           args.push('--non-interactive');
-          // Use DNS provider plugin
-          const pluginMap: Record<string, string> = {
-            cloudflare: 'dns-cloudflare',
-            route53: 'dns-route53',
-            digitalocean: 'dns-digitalocean',
-            google: 'dns-google',
-          };
-
-          const dnsPlugin = pluginMap[request.dns_provider || 'manual'];
-          if (dnsPlugin) {
-            args.push(`--${dnsPlugin}`);
-
-            // Create credentials file if credentials are provided
-            if (request.dns_credentials) {
-              const credentialsPath = await this.createDnsCredentialsFile(
-                request.dns_provider!,
-                request.dns_credentials
-              );
-              args.push(`--${dnsPlugin}-credentials`, credentialsPath);
-              logger.info(`Using ${request.dns_provider} DNS provider with credentials file: ${credentialsPath}`);
-            }
-          }
+          await this.addDnsPluginArgs(args, request);
         }
       } else {
         // Non-interactive for HTTP-based challenges
@@ -546,27 +567,7 @@ aws_secret_access_key = ${credentials.aws_secret_access_key}
           this.monitorDnsChallenge(jobId, userId);
         } else {
           args.push('--non-interactive');
-          const pluginMap: Record<string, string> = {
-            cloudflare: 'dns-cloudflare',
-            route53: 'dns-route53',
-            digitalocean: 'dns-digitalocean',
-            google: 'dns-google',
-          };
-
-          const dnsPlugin = pluginMap[request.dns_provider || 'manual'];
-          if (dnsPlugin) {
-            args.push(`--${dnsPlugin}`);
-
-            // Create credentials file if credentials are provided
-            if (request.dns_credentials) {
-              const credentialsPath = await this.createDnsCredentialsFile(
-                request.dns_provider!,
-                request.dns_credentials
-              );
-              args.push(`--${dnsPlugin}-credentials`, credentialsPath);
-              logger.info(`Using ${request.dns_provider} DNS provider with credentials file: ${credentialsPath}`);
-            }
-          }
+          await this.addDnsPluginArgs(args, request);
         }
       } else {
         args.push('--non-interactive');

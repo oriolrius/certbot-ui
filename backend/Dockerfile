@@ -12,6 +12,7 @@ RUN apk add --no-cache python3 py3-pip python3-dev gcc musl-dev libffi-dev opens
 RUN pip3 install --no-cache-dir --break-system-packages --upgrade \
     certbot \
     certbot-dns-cloudflare \
+    certbot-dns-digitalocean \
     certbot-dns-route53 \
     certbot-dns-google
 
