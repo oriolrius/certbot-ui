@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { api } from '@/services/api'
 import { useAuthStore } from '@/store/authStore'
+import { getErrorMessage } from '@/lib/utils'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -23,8 +24,8 @@ export default function LoginPage() {
       const response = await api.auth.login(username, password)
       login(response.user, response.token)
       navigate('/')
-    } catch (err: any) {
-      setError(err.message || 'Login failed')
+    } catch (err) {
+      setError(getErrorMessage(err, 'Login failed'))
     } finally {
       setLoading(false)
     }

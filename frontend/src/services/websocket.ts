@@ -10,7 +10,7 @@ class WebSocketService {
   private reconnectDelay = 1000
 
   connect(token: string): void {
-    const wsUrl = (import.meta as any).env?.VITE_WS_URL ||
+    const wsUrl = import.meta.env.VITE_WS_URL ||
       `ws://${window.location.hostname}:5000/ws`
 
     this.ws = new WebSocket(`${wsUrl}?token=${token}`)

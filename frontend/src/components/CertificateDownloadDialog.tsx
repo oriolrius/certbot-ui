@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Download, AlertCircle, Info, Key, FileText, Lock } from 'lucide-react'
 import { Button } from './ui/Button'
+import { getErrorMessage } from '@/lib/utils'
 
 interface CertificateDownloadDialogProps {
   certificateName: string
@@ -185,8 +186,8 @@ export default function CertificateDownloadDialog({
       document.body.removeChild(a)
 
       onClose()
-    } catch (err: any) {
-      setError(err.message || 'Failed to download certificate')
+    } catch (err) {
+      setError(getErrorMessage(err, 'Failed to download certificate'))
     }
   }
 
@@ -212,8 +213,8 @@ export default function CertificateDownloadDialog({
       a.click()
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
-    } catch (err: any) {
-      setError(err.message || 'Failed to download root certificate')
+    } catch (err) {
+      setError(getErrorMessage(err, 'Failed to download root certificate'))
     }
   }
 

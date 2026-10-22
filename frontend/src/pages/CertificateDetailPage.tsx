@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { useCertificate, useRenewCertificate, useDeleteCertificate } from '@/hooks/useCertificates'
-import { formatDate, formatRelativeTime } from '@/lib/utils'
+import { formatDate, formatRelativeTime, getErrorMessage } from '@/lib/utils'
 import { useState } from 'react'
 import CertificateDownloadDialog from '@/components/CertificateDownloadDialog'
 
@@ -21,8 +21,8 @@ export default function CertificateDetailPage() {
     try {
       await renewMutation.mutateAsync({ cert_name: name })
       alert('Certificate renewal initiated successfully')
-    } catch (error: any) {
-      alert(`Failed to renew certificate: ${error.message}`)
+    } catch (error) {
+      alert(`Failed to renew certificate: ${getErrorMessage(error)}`)
     }
   }
 
@@ -30,8 +30,8 @@ export default function CertificateDetailPage() {
     try {
       await deleteMutation.mutateAsync(name!)
       navigate('/certificates')
-    } catch (error: any) {
-      alert(`Failed to delete certificate: ${error.message}`)
+    } catch (error) {
+      alert(`Failed to delete certificate: ${getErrorMessage(error)}`)
     }
   }
 

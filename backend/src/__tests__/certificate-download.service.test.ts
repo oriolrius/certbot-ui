@@ -1,6 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { CertificateDownloadService } from '../services/certificate-download.service';
-import fs from 'fs/promises';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 
@@ -219,23 +218,7 @@ describe('CertificateDownloadService', () => {
   });
 
   describe('Format compatibility matrix', () => {
-    const formats: Array<'pem' | 'der' | 'p7b' | 'pkcs12' | 'jks' | 'crt' | 'cer'> = [
-      'pem',
-      'der',
-      'p7b',
-      'pkcs12',
-      'jks',
-      'crt',
-      'cer',
-    ];
 
-    const components: Array<'cert' | 'fullchain' | 'chain' | 'privkey' | 'bundle'> = [
-      'cert',
-      'fullchain',
-      'chain',
-      'privkey',
-      'bundle',
-    ];
 
     // Valid combinations
     const validCombinations: Array<[string, string]> = [
@@ -307,11 +290,6 @@ describe('CertificateDownloadService', () => {
 });
 
 describe('CertificateDownloadService - Integration Tests', () => {
-  let service: CertificateDownloadService;
-
-  beforeEach(() => {
-    service = new CertificateDownloadService();
-  });
 
   describe('OpenSSL availability', () => {
     it('should have openssl command available', async () => {

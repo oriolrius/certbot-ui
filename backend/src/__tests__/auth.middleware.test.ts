@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { generateToken, verifyToken, authMiddleware } from '../middleware/auth';
 import { AuthRequest } from '../types';
 

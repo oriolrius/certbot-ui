@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/Button'
 import { useObtainCertificate, useJobCompletion } from '@/hooks/useCertificates'
 import { CertificateRequest } from '@/types'
+import { getErrorMessage } from '@/lib/utils'
 
 const PLUGINS = [
   { value: 'standalone', label: 'Standalone', description: 'Use built-in web server (port 80/443 required)' },
@@ -96,8 +97,8 @@ export default function NewCertificatePage() {
       const response = await obtainMutation.mutateAsync(request)
       setJobId(response.jobId)
       setStep(5) // Progress/Status step
-    } catch (error: any) {
-      alert(`Failed to obtain certificate: ${error.message}`)
+    } catch (error) {
+      alert(`Failed to obtain certificate: ${getErrorMessage(error)}`)
     }
   }
 
@@ -173,7 +174,7 @@ export default function NewCertificatePage() {
                 {PLUGINS.map((p) => (
                   <button
                     key={p.value}
-                    onClick={() => setPlugin(p.value as any)}
+                    onClick={() => setPlugin(p.value as typeof plugin)}
                     className={`p-4 rounded-lg border text-left transition-colors ${
                       plugin === p.value
                         ? 'border-primary bg-primary/10'
@@ -204,7 +205,7 @@ export default function NewCertificatePage() {
                       {DNS_PROVIDERS.map((provider) => (
                         <button
                           key={provider.value}
-                          onClick={() => setDnsProvider(provider.value as any)}
+                          onClick={() => setDnsProvider(provider.value as typeof dnsProvider)}
                           className={`p-3 rounded-md border text-left transition-colors ${
                             dnsProvider === provider.value
                               ? 'border-primary bg-primary/10'
