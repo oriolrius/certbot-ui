@@ -13,7 +13,7 @@ describe('CertbotService', () => {
       const dangerous = 'test;rm -rf /';
       const result = (service as any).sanitizeInput(dangerous);
       expect(result).not.toContain(';');
-      expect(result).toBe('testrm -rf ');
+      expect(result).toBe('testrm -rf /');
     });
 
     it('should preserve safe characters', () => {

@@ -4,7 +4,7 @@ import { formatDate, formatRelativeTime, getCertificateStatus } from '../lib/uti
 describe('Utils', () => {
   describe('formatDate', () => {
     it('should format date correctly', () => {
-      const date = new Date('2024-12-31T23:59:59Z')
+      const date = new Date('2024-12-31T12:00:00Z')
       const result = formatDate(date)
       expect(result).toContain('December')
       expect(result).toContain('31')
@@ -12,7 +12,7 @@ describe('Utils', () => {
     })
 
     it('should handle string dates', () => {
-      const result = formatDate('2024-12-31T23:59:59Z')
+      const result = formatDate('2024-12-31T12:00:00Z')
       expect(result).toContain('December')
     })
   })

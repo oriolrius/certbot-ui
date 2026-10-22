@@ -10,6 +10,12 @@ vi.mock('@/hooks/useCertificates', () => ({
     mutateAsync: vi.fn(),
     isPending: false,
   }),
+  useJobCompletion: () => ({
+    job: undefined,
+    isComplete: false,
+    error: null,
+    isInProgress: false,
+  }),
 }))
 
 const queryClient = new QueryClient({
