@@ -1,7 +1,13 @@
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import ChangePasswordDialog from '@/components/ChangePasswordDialog'
+import { useAuthStore } from '@/store/authStore'
 
 export default function SettingsPage() {
+  const username = useAuthStore((state) => state.user?.username ?? '')
+  const [showChangePassword, setShowChangePassword] = useState(false)
+
   return (
     <div className="space-y-6 max-w-3xl">
       <div>
@@ -19,12 +25,14 @@ export default function SettingsPage() {
             <label className="text-sm font-medium">Username</label>
             <input
               type="text"
-              value="admin"
+              value={username}
               disabled
               className="w-full px-3 py-2 rounded-md border border-input bg-muted mt-2"
             />
           </div>
-          <Button variant="outline">Change Password</Button>
+          <Button variant="outline" onClick={() => setShowChangePassword(true)}>
+            Change Password
+          </Button>
         </CardContent>
       </Card>
 
@@ -105,6 +113,10 @@ export default function SettingsPage() {
       <div className="flex justify-end">
         <Button>Save Settings</Button>
       </div>
+
+      {showChangePassword && (
+        <ChangePasswordDialog onClose={() => setShowChangePassword(false)} />
+      )}
     </div>
   )
 }

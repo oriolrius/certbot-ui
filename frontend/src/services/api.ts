@@ -70,10 +70,10 @@ export const api = {
         body: JSON.stringify({ username, password }),
       }),
 
-    changePassword: (username: string, oldPassword: string, newPassword: string) =>
-      fetchApi('/auth/change-password', {
+    changePassword: (oldPassword: string, newPassword: string) =>
+      fetchApi<void>('/auth/change-password', {
         method: 'POST',
-        body: JSON.stringify({ username, oldPassword, newPassword }),
+        body: JSON.stringify({ oldPassword, newPassword }),
       }),
   },
 
