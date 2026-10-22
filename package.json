@@ -1,6 +1,6 @@
 {
   "name": "certbot-ui",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Modern web interface for managing Certbot SSL/TLS certificates",
   "private": true,
   "workspaces": [
