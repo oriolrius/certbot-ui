@@ -1,3 +1,11 @@
+## v1.1.1 (2026-10-22)
+
+### Fix
+
+- **server**: honor HOST and bind to 0.0.0.0 by default
+- **dns**: make Route53 and DigitalOcean work and keep credentials for renewals
+- **auth**: require authentication to create users
+
 ## v1.1.0 (2026-10-22)
 
 ### Feat
