@@ -172,7 +172,7 @@ docker-compose up -d
 ```
 
 ### Manual Installation
-See [INSTALLATION.md](./INSTALLATION.md) for detailed instructions.
+See [INSTALLATION.md](./docs/INSTALLATION.md) for detailed instructions.
 
 ## Default Credentials
 
@@ -223,9 +223,9 @@ Built with:
 
 ## Support
 
-- Documentation: See USAGE.md
+- Documentation: See docs/USAGE.md
 - Issues: GitHub Issues
-- Contributing: See CONTRIBUTING.md
+- Contributing: See docs/CONTRIBUTING.md
 
 ---
 

@@ -152,7 +152,7 @@ docker compose up -d
 1. ✅ Change default password (Settings page)
 2. ✅ Try obtaining a test certificate (use staging environment)
 3. ✅ Explore the dashboard and features
-4. 📖 Read [USAGE.md](./USAGE.md) for detailed usage guide
+4. 📖 Read [USAGE.md](./docs/USAGE.md) for detailed usage guide
 5. 🔒 Review security settings before production use
 
 ## Security Reminders
@@ -176,9 +176,9 @@ docker compose up -d
 ## Support
 
 - 📖 Documentation: See [README.md](./README.md)
-- 🚀 Installation: See [INSTALLATION.md](./INSTALLATION.md)
-- 📘 Usage Guide: See [USAGE.md](./USAGE.md)
-- 🤝 Contributing: See [CONTRIBUTING.md](./CONTRIBUTING.md)
+- 🚀 Installation: See [INSTALLATION.md](./docs/INSTALLATION.md)
+- 📘 Usage Guide: See [USAGE.md](./docs/USAGE.md)
+- 🤝 Contributing: See [CONTRIBUTING.md](./docs/CONTRIBUTING.md)
 
 ---
 
