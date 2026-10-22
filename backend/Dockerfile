@@ -30,8 +30,8 @@ RUN npm run build
 # Remove devDependencies
 RUN npm prune --production
 
-# Create logs directory
-RUN mkdir -p logs
+# Create logs and data (persisted user store) directories
+RUN mkdir -p logs data
 
 # Expose port
 EXPOSE 5000

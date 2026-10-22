@@ -118,8 +118,8 @@ COPY --from=dependencies --chown=nodejs:nodejs /app/backend/package.json ./backe
 # Copy built backend
 COPY --from=build-backend --chown=nodejs:nodejs /app/backend/dist ./backend/dist
 
-# Create logs directory
-RUN mkdir -p logs && chown -R nodejs:nodejs logs
+# Create logs and data (persisted user store) directories
+RUN mkdir -p logs data && chown -R nodejs:nodejs logs data
 
 # Copy entrypoint script
 COPY --chown=nodejs:nodejs docker/docker-entrypoint-backend.sh /usr/local/bin/docker-entrypoint.sh
@@ -131,7 +131,8 @@ USER nodejs
 # Set environment variables with production defaults
 ENV NODE_ENV=production \
     PORT=5000 \
-    HOST=0.0.0.0
+    HOST=0.0.0.0 \
+    USERS_FILE=/app/data/users.json
 
 # Expose port
 EXPOSE 5000

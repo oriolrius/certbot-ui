@@ -38,6 +38,9 @@ coverage/
 test-certs/
 certbot-data/
 
+# Persisted user store (USERS_FILE)
+data/
+
 # Temporary files
 tmp/
 temp/

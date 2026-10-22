@@ -14,11 +14,15 @@ services:
       - /var/log/letsencrypt:/var/log/letsencrypt
       # Application logs
       - ./backend/logs:/app/logs
+      # Persisted user store (password changes survive restarts)
+      - certbot-ui-data:/app/data
     environment:
       - NODE_ENV=production
       - PORT=5000
       - JWT_SECRET=${JWT_SECRET:-change-this-to-a-secure-random-string}
       - JWT_EXPIRES_IN=24h
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
+      - USERS_FILE=/app/data/users.json
       - ALLOWED_ORIGINS=http://localhost,http://localhost:3000,http://localhost:9000
       - CERTBOT_PATH=/usr/bin/certbot
       - CERTBOT_CONFIG_DIR=/etc/letsencrypt
@@ -56,6 +60,9 @@ services:
       start_period: 40s
     networks:
       - certbot-network
+
+volumes:
+  certbot-ui-data:
 
 networks:
   certbot-network:

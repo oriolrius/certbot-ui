@@ -9,6 +9,10 @@ export interface Config {
     secret: string;
     expiresIn: string;
   };
+  auth: {
+    usersFile: string;
+    adminPassword: string;
+  };
   cors: {
     allowedOrigins: string[];
   };
@@ -30,6 +34,10 @@ const config: Config = {
   jwt: {
     secret: process.env.JWT_SECRET || 'change-this-secret',
     expiresIn: process.env.JWT_EXPIRES_IN || '24h',
+  },
+  auth: {
+    usersFile: process.env.USERS_FILE || './data/users.json',
+    adminPassword: process.env.ADMIN_PASSWORD || 'admin123',
   },
   cors: {
     allowedOrigins: (process.env.ALLOWED_ORIGINS || 'http://localhost:3000')

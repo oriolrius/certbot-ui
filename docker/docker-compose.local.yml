@@ -22,6 +22,11 @@ services:
       - JWT_SECRET=${JWT_SECRET:-change-this-to-a-secure-random-string}
       - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-24h}
 
+      # Authentication
+      # Initial admin password, only used when the users file does not exist yet
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
+      - USERS_FILE=/app/data/users.json
+
       # CORS Configuration
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:8080}
 
@@ -43,6 +48,8 @@ services:
       - ${LETSENCRYPT_LOGS_DIR:-/var/log/letsencrypt}:/var/log/letsencrypt
       # Application logs
       - ./logs:/app/logs
+      # Persisted user store (password changes survive restarts)
+      - certbot-ui-data:/app/data
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/api/health"]
       interval: 30s
@@ -98,6 +105,9 @@ services:
       - certbot-ui-network
     profiles:
       - cloudflare
+
+volumes:
+  certbot-ui-data:
 
 networks:
   certbot-ui-network:

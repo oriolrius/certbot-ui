@@ -36,6 +36,13 @@ Default credentials:
 - Username: `admin`
 - Password: `admin123`
 
+The default password can be set with the `ADMIN_PASSWORD` environment variable
+before the first start. Users are stored (bcrypt-hashed) in `USERS_FILE`
+(default `./data/users.json`, `/app/data/users.json` in Docker, backed by the
+`certbot-ui-data` volume), so password changes made in **Settings → Change
+Password** persist across restarts. To reset a lost password, stop the backend,
+delete the users file and start it again.
+
 ### 5. Verify services are running
 
 ```bash
