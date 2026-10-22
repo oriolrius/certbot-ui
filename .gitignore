@@ -45,3 +45,8 @@ temp/
 
 # Cloudflared tunnel credentials (keep config.yml but not credentials)
 .cloudflared/*.json
+
+# Local-only files (contain deployment-specific values or secrets)
+test-cloudflare-cert.sh
+frontend/.env.development
+pnpm-lock.yaml
