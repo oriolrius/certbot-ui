@@ -50,6 +50,6 @@ temp/
 .cloudflared/*.json
 
 # Local-only files (contain deployment-specific values or secrets)
-test-cloudflare-cert.sh
+.cloudflared/
 frontend/.env.development
 pnpm-lock.yaml

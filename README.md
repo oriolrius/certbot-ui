@@ -152,20 +152,23 @@ Comprehensive documentation is available in the `docs/` directory:
 - **[Quick Start Guide](docs/QUICKSTART.md)** - Get up and running quickly
 - **[Usage Guide](docs/USAGE.md)** - How to use the application
 - **[Cloudflare Tunnel Setup](docs/cloudflare-tunnel-setup.md)** - Expose services securely to the internet
+- **[Development Guide](docs/DEVELOPMENT.md)** - Dev servers, allowed hosts, tests and lint
 - **[Contributing Guide](docs/CONTRIBUTING.md)** - How to contribute to the project
 
 ## Docker Deployment
 
-The application can be deployed using Docker Compose with Cloudflare Tunnels for secure internet access:
+Pre-built images are published to GHCR. Use the compose file in `docker/`:
 
 ```bash
-# Start all services (backend, frontend, and tunnel)
+cd docker
+cp .env.example .env   # set JWT_SECRET, ADMIN_PASSWORD, ALLOWED_ORIGINS...
 docker compose up -d
 
-# View logs
-docker compose logs -f
+# Optional: also start a Cloudflare Tunnel
+docker compose --profile cloudflare up -d
 
-# Stop services
+# View logs / stop
+docker compose logs -f
 docker compose down
 ```
 

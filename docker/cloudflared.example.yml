@@ -1,0 +1,17 @@
+# Cloudflare Tunnel configuration template for the `cloudflare` compose profile.
+# Copy to docker/.cloudflared/config.yml (gitignored) and fill in your values.
+# See docs/cloudflare-tunnel-setup.md.
+tunnel: <tunnel-id>
+credentials-file: /etc/cloudflared/<tunnel-id>.json
+
+ingress:
+  # Frontend (nginx also proxies /api and /ws to the backend)
+  - hostname: certbot.example.com
+    service: http://frontend:8080
+
+  # Optional: direct access to the backend API
+  - hostname: certbot-api.example.com
+    service: http://backend:5000
+
+  # Catch-all rule (required)
+  - service: http_status:404
