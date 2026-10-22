@@ -48,7 +48,9 @@ export class AuthController {
     }
   }
 
-  async register(req: Request, res: Response, next: NextFunction): Promise<void> {
+  // Creates an additional user. Requires an authenticated user (see auth.routes):
+  // anyone with an account can manage certificates, so sign-up is not public.
+  async register(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const { username, password } = req.body;
 
@@ -66,14 +68,11 @@ export class AuthController {
 
       const { id } = await users.create(username, password);
 
-      const token = generateToken({ id, username });
-
-      logger.info(`New user registered: ${username}`);
+      logger.info(`User ${req.user?.username} created user ${username}`);
 
       res.status(201).json({
         success: true,
         data: {
-          token,
           user: {
             id,
             username,

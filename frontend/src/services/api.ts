@@ -6,7 +6,8 @@ import {
   ApiResponse,
   AuthResponse,
   Job,
-  JobResponse
+  JobResponse,
+  User
 } from '../types'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
@@ -64,8 +65,9 @@ export const api = {
         body: JSON.stringify({ username, password }),
       }),
 
+    // Creates an additional user; requires being logged in
     register: (username: string, password: string) =>
-      fetchApi<AuthResponse>('/auth/register', {
+      fetchApi<{ user: User }>('/auth/register', {
         method: 'POST',
         body: JSON.stringify({ username, password }),
       }),

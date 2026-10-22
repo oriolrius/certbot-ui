@@ -43,6 +43,9 @@ before the first start. Users are stored (bcrypt-hashed) in `USERS_FILE`
 Password** persist across restarts. To reset a lost password, stop the backend,
 delete the users file and start it again.
 
+There is no public sign-up: additional users can only be created by a logged-in
+user (`POST /api/auth/register` with a valid token).
+
 ### 5. Verify services are running
 
 ```bash
