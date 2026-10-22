@@ -52,8 +52,8 @@ app.use(errorHandler);
 // Start server
 const PORT = config.port;
 
-server.listen(PORT, () => {
-  logger.info(`Server running on port ${PORT}`);
+server.listen(PORT, config.host, () => {
+  logger.info(`Server running on ${config.host}:${PORT}`);
   logger.info(`Environment: ${config.nodeEnv}`);
   logger.info(`WebSocket available at ws://localhost:${PORT}/ws`);
 });

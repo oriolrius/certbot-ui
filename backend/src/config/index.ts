@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export interface Config {
+  host: string;
   port: number;
   nodeEnv: string;
   jwt: {
@@ -29,6 +30,7 @@ export interface Config {
 }
 
 const config: Config = {
+  host: process.env.HOST || '0.0.0.0',
   port: parseInt(process.env.PORT || '5000', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
   jwt: {

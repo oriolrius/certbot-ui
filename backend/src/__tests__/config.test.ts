@@ -7,6 +7,11 @@ describe('Config', () => {
     expect(typeof config.port).toBe('number');
   });
 
+  it('should listen on all IPv4 interfaces by default', () => {
+    // Without an explicit host Node binds to '::', which WSL2 does not forward
+    expect(config.host).toBe(process.env.HOST || '0.0.0.0');
+  });
+
   it('should have jwt configuration', () => {
     expect(config.jwt).toBeDefined();
     expect(config.jwt.secret).toBeDefined();
