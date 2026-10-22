@@ -3,6 +3,7 @@ import { RefreshCw } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { useCertificateLogs } from '@/hooks/useCertificates'
+import LogViewer from '@/components/LogViewer'
 
 export default function LogsPage() {
   const [limit, setLimit] = useState(100)
@@ -13,7 +14,7 @@ export default function LogsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Logs</h1>
-          <p className="text-muted-foreground">View Certbot operation logs</p>
+          <p className="text-muted-foreground">View Certbot operation logs with advanced filtering and syntax highlighting</p>
         </div>
         <div className="flex items-center gap-4">
           <select
@@ -43,13 +44,7 @@ export default function LogsPage() {
               <p className="text-muted-foreground">Loading logs...</p>
             </div>
           ) : logs.length > 0 ? (
-            <div className="bg-black text-green-400 rounded-lg p-4 font-mono text-sm overflow-x-auto max-h-[600px] overflow-y-auto">
-              {logs.map((line, index) => (
-                <div key={index} className="whitespace-pre-wrap break-all">
-                  {line}
-                </div>
-              ))}
-            </div>
+            <LogViewer logs={logs} />
           ) : (
             <div className="text-center py-8">
               <p className="text-muted-foreground">No logs available</p>
