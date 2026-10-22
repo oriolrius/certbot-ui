@@ -331,6 +331,7 @@ describe('CertificateDownloadService - Integration Tests', () => {
       } catch (error) {
         console.log('\n⚠ Keytool not available - JKS conversion will fail');
       }
-    });
+      // Starting the JVM can exceed the default 5s timeout on CI runners
+    }, 30000);
   });
 });
